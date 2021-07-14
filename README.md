@@ -1,6 +1,8 @@
 # eos-designer
 Browser-based design tool for the 1986 abandonware game EOS: Earth Orbit Stations
 
+Play it here: https://nanonuq.github.io/eos-designer/eos-designer.html
+
 Welcome to the Earth Orbit Stations Designer!
 
 This program is meant to simplify station design.
