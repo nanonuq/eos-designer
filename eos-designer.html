@@ -1,0 +1,732 @@
+<!DOCTYPE HTML>
+<html>
+<meta charset="UTF-8">
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="840" height="330" tabindex="1"></canvas>
+    <script>
+//basic structure is: menu is stored in one array, station build is stored in another. whenever moving a module around, it is removed from the station build array and exists only as the variable activemodule. display redraws continuously based on the three inputs.
+
+//set up the background
+      var canvas = document.getElementById('myCanvas');
+      var context = canvas.getContext('2d');
+
+//draw the menu
+    var lifea = new Image();
+    lifea.src = './resources/LifeA.png';
+    var weather = new Image();
+    weather.src = './resources/WeatherCenter.png';
+    var scon = new Image();
+    scon.src = './resources/ShortConnector.png';
+    var command = new Image();
+    command.src = './resources/Command.png';
+    var chem = new Image();
+    chem.src = './resources/ChemicalLab.png';
+    var resplat = new Image();
+    resplat.src = './resources/ResourcePlatform.png';
+    var ggym = new Image();
+    ggym.src = './resources/GalleyGym.png';
+    var lcon = new Image();
+    lcon.src = './resources/LongConnector.png';
+    var pharma = new Image();
+    pharma.src = './resources/PharmaceuticLab.png';
+    var stnpow = new Image();
+    stnpow.src = './resources/StationPower.png';
+    var lifeb = new Image();
+    lifeb.src = './resources/LifeB.png';
+    var logi = new Image();
+    logi.src = './resources/Logistics.png';
+    var bldplat = new Image();
+    bldplat.src = './resources/BuildingPlatform.png';
+    var comms = new Image();
+    comms.src = './resources/Communications.png';
+    var comp = new Image();
+    comp.src = './resources/ComputerLab.png';
+    var fablab = new Image();
+    fablab.src = './resources/FabricationLab.png';
+    var hubble = new Image();
+    hubble.src = './resources/SpaceTelescope.png';
+    var solcol = new Image();
+    solcol.src = './resources/SolarCollector.png';
+    var port = new Image();
+    port.src = './resources/ShuttlePort.png';
+    var forest = new Image();
+    forest.src = './resources/ForestryLab.png';
+    var biolab = new Image();
+    biolab.src = './resources/BiologyLab.png';
+    var massd = new Image();
+    massd.src = './resources/MassDriver.png';
+    var setlife = new Image();
+    setlife.src = './resources/SettlementLife.png';
+    var hosp = new Image();
+    hosp.src = './resources/SpaceHospital.png';
+    var tug = new Image();
+    tug.src = './resources/SpaceTug.png';
+    var lifec = new Image();
+    lifec.src = './resources/LifeLH2.png';
+    var dsrelay = new Image();
+    dsrelay.src = './resources/DeepSpaceRelay.png';
+    var enplat = new Image();
+    enplat.src = './resources/EnergyPlatform.png';
+    var alloy = new Image();
+    alloy.src = './resources/SpaceAlloysLab.png';
+    var aglab = new Image();
+    aglab.src = './resources/AgricultureLab.png';
+    var prop = new Image();
+    prop.src = './resources/PropulsionUnit.png';
+    var catcher = new Image();
+    catcher.src = './resources/Catcher.png';
+    var ddock = new Image();
+    ddock.src = './resources/DryDock.png';
+    var fbplant = new Image();
+    fbplant.src = './resources/FabricationPlant.png';
+    var matplant = new Image();
+    matplant.src = './resources/MaterialsPlant.png';
+    var setpow = new Image();
+    setpow.src = './resources/SettlementPower.png';
+    var mine = new Image();
+    mine.src = './resources/Mine-Ore.png';
+    var jupexp = new Image();
+    jupexp.src = './resources/JupiterExplorer.png';
+    var colony = new Image();
+    colony.src = './resources/SpaceColony.png';
+
+//set up menu database - split into columns
+    const menudbname = [lifea,weather,scon,command,chem,resplat,ggym,lcon,pharma,stnpow,lifeb,logi,bldplat,comms,comp,fablab,hubble,solcol,port,forest,biolab,massd,setlife,hosp,tug,lifec,dsrelay,enplat,alloy,aglab,prop,catcher,ddock,fbplant,matplant,setpow,mine,jupexp,colony];
+    const menudbcolour = ['blue','green','blue','blue','green','green','blue','blue','green','blue','blue','blue','green','green','green','yellow','green','green','green','yellow','yellow','red','red','yellow','yellow','blue','yellow','yellow','yellow','yellow','red','red','red','red','red','red','red','red','red'];
+    const menudbx = [600,725,510,370,620,690,405,475,655,530,565,440,370,405,440,575,475,510,755,370,390,425,460,495,530,565,607,637,672,705,700,370,410,450,490,530,570,610,650];
+    const menudby = [10,10,10,10,10,10,10,10,10,10,10,10,30,30,30,30,30,30,10,65,65,65,65,65,65,65,30,30,30,30,65,85,85,85,85,85,85,85,85];
+    const menudbw = [15,15,15,30,30,30,30,30,30,30,30,30,30,30,30,30,30,60,60,15,30,30,30,30,30,45,30,30,30,45,30,30,30,30,30,30,30,30,30];
+    const menudbh = [15,15,15,15,15,15,15,15,15,15,15,15,30,30,30,30,30,30,60,15,15,15,15,15,15,15,30,30,30,30,45,15,15,15,15,15,15,15,15];
+    const menutxt1 = ['Life A','Weather Center','Short Connector','Command','Chemical Lab','Resource Platform','Galley & Gym','Long Connector','Pharmaceutics Lab','Station Power','Life B','Logistics','Building Platform','Communications','Computer Lab','Fabrication Lab','Space Telescope','Solar Collector','Shuttle Port','Forestry Lab','Biology Lab','Mass Driver','Settlement Life','Space Hospital','Space Tug','Life LH2','Deep Space Relay','Energy Platform','Space Alloys Lab','Agriculture Lab','Propulsion Unit','Catcher','Dry Dock','Fabrication Plant','Materials Plant','Settlement Power','Mine/Ore','Jupiter Explorer','Space Colony'];
+    const menutxt2 = ['Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: None','Requirements: Con B00','Requirements: None','Requirements: None','Requirements: None','Requirements: For A50','Requirements: Sci A50','Requirements: Phy C00','Requirements: Fab C00','Requirements: Med B50','Requirements: Tra B00','Requirements: Con A50','Requirements: Com A50','Requirements: Eng A50','Requirements: Mat B00','Requirements: Ag A50','Requirements: Tra B50','Requirements: Tra C50','Requirements: Con B50','Requirements: Fab D00','Requirements: Mat D00','Requirements: Eng C00','Requirements: Res C00','Requirements: Tra C00','Requirements: Con D00'];
+    const menutxt3 = ['Produces: None','Produces: Phy, Ag','Produces: None','Produces: None','Produces: Sci, Mat','Produces: Res, For, Ag','Produces: None','Produces: None','Produces: Pha, Med','Produces: None','Produces: None','Produces: None','Produces: Con','Produces: Inf, Com, Ent','Produces: Inf','Produces: Con, Fab','Produces: Sci, Phy','Produces: Eng','Produces: Tra','Produces: Res, For','Produces: Sci, Bio, Pha','Produces: None','Produces: None','Produces: Pha, Med','Produces: Tra','Produces: None','Produces: Com','Produces: Eng','Produces: Mat','Produces: Res, Ag','Produces: None','Produces: None','Produces: None','Produces: None','Produces: None','Produces: None','Produces: None','Produces: None','Produces: None'];
+    const menutxt4 = ['A tiny habitat.','A remote sensor suite.','A short, pressurized','The mandatory com-','Chemistry without','A remote sensor suite,','A place for running in','A longer pressurized','A specialized chemistry','A solar panel, actuat-','A larger habitat. Going','A place to manage station','The Canadarm X. This is','An intermittent communi-','Obsolete computers','Producing finished parts','Like Hubble but bolted on.','A concentrating solar power','Supports the care and feeding of','Hyperspectral radars tell','Mice worth more than','A space gun that','An all-in-one life support','A hospital... in space.','A small craft that drags','A fuel tank converted to','A radio designed to talk','An experimental microwave','A factory that produces','Nominally for algae,','Engines to move your','A giant net and mini mass','A place to construct','A full-featured makerspace,','Spacechem but in space.','A small nuclear reactor,','A platform for extracting','A fast scout ship designed','A massive self-powered'];
+    const menutxt5 = ['','','truss.','-mand centre.','convection.','to tell you what forest to cut.','circles.','truss.','lab.','-ors and charge controller.','larger requires research.','air, water, power and heat.','where Waldo was all along.','-cation link, due to low orbit.','battling cosmic rays.','instead of just assembling.','','power setup, able to beam to Earth.','orbiters. Weird collision box.','you where the wildfire is.','some peoples\' lifetime incomes.','shoots rocks.','and habitat unit.','','satellites around by the bell-end.','a habitat.','to Martians.','power beaming platform.','exotic metal alloys.','functionally for weed.','spacecraft. 10 fuel/planet, 2/moon.','driver to catch space gun rocks.','new spacecraft.','able to build anything.','','meant to power a planetside colony.','useful feedstock from space rocks.','to search for life.','habitat.'];
+    const capex = [10,17,5,25,26,21,25,8,32,10,18,15,34,36,40,41,37,60,77,14,36,50,20,60,23,12,40,30,44,56,55,25,10,30,35,15,35,25,70];
+    const opex = [2,1.5,1,5,2.5,1.5,5,1.6,2.5,2,3.6,3.0,2.5,2.5,4,4,4,2,9.5,1,2.5,8,10,50,1.5,2.4,3,2.5,4,6.5,20,15,7,21,25,2,14,14,44];
+    const crew = [4,-2,0,0,-3,-1,0,0,-3,0,8,0,-2,-1,-4,-4,-4,0,-5,-1,-3,-1,4,2,-1,16,-2,-1,-4,-5,0,1,2,2,2,0,-1,1,25];
+    const galleygym = [0,-2,0,0,-3,-1,24,0,-3,0,0,0,-2,-1,-4,-4,-4,0,-5,-1,-3,-1,4,2,-1,0,-2,-1,-4,-5,0,1,2,2,2,0,-1,1,25];
+    const basecharge = [0,10,0,0,18,10,0,0,20,0,0,0,26,16,31,29,27,20,74,10,26,0,0,100,19,0,30,23,33,40,0,0,0,0,0,0,0,0,0];
+    const mass = [1,1,1,2,2,2,2,2,2,1,2,2,2,2,4,4,4,4,4,1,2,2,2,2,2,2,4,2,4,4,4,2,2,2,2,2,2,2,2];
+    const power = [-5,-5,0,0,-10,-10,-10,0,-10,35,-10,0,-20,-20,-20,-20,-20,100,-70,-5,-10,-15,10,40,-10,-15,-20,-20,-20,-40,-30,100,20,20,25,20,-5,30,100];
+
+//set up module database
+    //nameID,x,y,rot
+    var mdbname = [lifeb,lcon,logi,ggym,command,stnpow];
+    var mdbx = [62,132,167,167,132,137];
+    var mdby = [148,137,163,141,79,198];
+    var mdbrot = [2,1,0,0,-1,1];
+    var mdbactive = null; //active selection will follow mouse, with arrows?
+    var activemodule = null;
+    var netcapex = 0;
+    var netopex = 0;
+    var netggym = 0;
+    var netcrew = 0;
+    var netpower = 0;
+    var netcharge = 0;
+    var netmass = 0;
+    //get mouse position
+    var currentrot = 0;
+    var width = 60;
+    var height = 30;
+    var mouse_x = 0;
+    var mouse_y = 0;
+    var shuttleport = 0;
+    var instructions = 1; //start with instructions open
+    var colourcode = 1; //start with colour coding on
+    var import_underway = 0;
+
+    canvas.addEventListener('mousemove', doMouseMove, true);
+    function doMouseMove(event){
+        mouse_x = event.pageX;
+        mouse_y = event.pageY;
+        refreshdisplay();
+    }
+
+    canvas.addEventListener('mousedown', doMouseDown, true);
+    function doMouseDown(event){
+        mouse_x = event.pageX;
+        mouse_y = event.pageY;
+        var criteria = 0;
+        //throwing away by clicking active module into empty menu space
+        if (activemodule !== null && mouse_x > 360 && !Number.isInteger(findbutton(mouse_x, mouse_y))){criteria = 1;}
+        //spawning a new module from the menu and implicitly throwing away active module
+        if (Number.isInteger(findbutton(mouse_x, mouse_y))){criteria = 2;}
+        //picking up an old module from the build area (might cause issues b/c build area collision not in yet)
+        if (activemodule === null && Number.isInteger(spotcheck(mouse_x,mouse_y,0))){criteria = 3;}
+        //placing a module into or back into the build area (inc. special shuttle collision check)
+        if (activemodule !== null && mouse_x <= 360){criteria = 4;}
+        //detect import button
+        if ((mouse_x >= 692 && mouse_x <= 806) && (mouse_y >= 136 && mouse_y <= 166)){criteria = 5;}
+        //detect export button
+        if ((mouse_x >= 692 && mouse_x <= 806) && (mouse_y >= 186 && mouse_y <= 216)){criteria = 6;}
+        //colour coding toggle
+        if ((mouse_x >= 692 && mouse_x <= 806) && (mouse_y >= 236 && mouse_y <= 266)){criteria = 7;}
+        //click for instructions
+        if ((mouse_x >= 692 && mouse_x <= 806) && (mouse_y >= 286 && mouse_y <= 316)){criteria = 8;}
+        switch (criteria){
+            case 0: //do nothing
+                instructions = 0;
+                break;
+            case 1: //clear activemodule (throw away)
+                activemodule = null;
+                currentrot = 0;
+                instructions = 0;
+                break;
+            case 2: //set selected item as activemodule (spawn new item)
+                currentrot = 0;
+                activemodule = menudbname[findbutton(mouse_x, mouse_y)];
+                width = menudbw[findbutton(mouse_x, mouse_y)]*2;
+                height = menudbh[findbutton(mouse_x, mouse_y)]*2
+                instructions = 0;
+                break;
+            case 3: //find menudbname of build area module, set as active, inherit rotation, wipe mdb entry (pick up old)
+                mdbactive = spotcheck(mouse_x,mouse_y,0); //set that module to active
+                width = menudbw[menudbname.indexOf(mdbname[mdbactive])]*2;
+                height = menudbh[menudbname.indexOf(mdbname[mdbactive])]*2;
+                currentrot = mdbrot[mdbactive];
+                activemodule = mdbname[mdbactive];
+                deleteactive(mdbactive);
+                instructions = 0;
+                break;
+            case 4: //add active module to mdb, clear activemodule (set in place)
+                if (Number.isInteger(spotcheck(mouse_x,mouse_y,0))){  //if a collision is detected, then check for shuttleport
+                    if (((mdbname[spotcheck(mouse_x,mouse_y,0)] == port) && (!Number.isInteger(spotcheck(mouse_x,mouse_y,1)))) || (activemodule === menudbname[18])){//if it is a module and doesn't collide with the special shuttle check, then go ahead and place it. shuttle ports are immune to collision checking.
+                        mdbname.push(activemodule);
+                        mdbactive = spotcheck(mouse_x,mouse_y,0); //set that module to active
+                        width = menudbw[menudbname.indexOf(mdbname[mdbactive])]*2;
+                        height = menudbh[menudbname.indexOf(mdbname[mdbactive])]*2;
+                        mdbx.push(mouse_x);
+                        mdby.push(mouse_y);
+                        mdbrot.push(currentrot);
+                        activemodule = null;
+                        currentrot = 0;
+                    }
+                }
+                else { //if placing into a collision-free space, go ahead
+                    mdbname.push(activemodule);
+                    mdbactive = spotcheck(mouse_x,mouse_y,0); //set that module to active
+                    width = menudbw[menudbname.indexOf(mdbname[mdbactive])]*2;
+                    height = menudbh[menudbname.indexOf(mdbname[mdbactive])]*2;
+                    mdbx.push(mouse_x);
+                    mdby.push(mouse_y);
+                    mdbrot.push(currentrot);
+                    activemodule = null;
+                    currentrot = 0;
+                }
+                instructions = 0;
+                break;
+            case 5: //import button
+                importlayout();
+                instructions = 0;
+                break;
+            case 6: //export button
+                exportlayout();
+                instructions = 0;
+                break;
+            case 7: //colour coding toggle
+                instructions = 0;
+                var n = Math.abs(colourcode - 1); //toggles to 1 if 0 and to 0 if 1
+                colourcode = n;
+                break;
+            case 8: //mouse over for instructions
+                instructions = 1;
+                break;
+        }
+        refreshdisplay();
+    }
+
+//rotate via arrow keys or rotate arrow for mobile?
+canvas.addEventListener('keydown',doKeyDown,true);
+function doKeyDown(event){
+//    console.log(event.keyCode);
+    if ((event.keyCode == 37) || (event.keyCode == 38)){currentrot = currentrot-1;}//left or up
+    if ((event.keyCode == 39) || (event.keyCode == 40)){currentrot = currentrot+1;}//right or down
+    if ((event.keyCode == 88) || (event.keyCode == 46)){activemodule=null;} //x or del to delete selected module
+    if (event.keyCode == 86 && mdbname.length > 0){//v to repeat last placed module
+        activemodule = mdbname[mdbname.length-1];
+        width = menudbw[menudbname.indexOf(mdbname[mdbname.length-1])]*2;
+        height = menudbh[menudbname.indexOf(mdbname[mdbname.length-1])]*2;
+        currentrot = mdbrot[mdbname.length-1];
+    } 
+    refreshdisplay(mouse_x,mouse_y);
+}
+
+    //run through each entry in menudb, see if mouse_x >= x, <= x+width and mouse_y >= y, <= y+height
+function findbutton(mouse_x, mouse_y){
+    for (i = 0; i < menudbname.length; i++){
+        if((mouse_x >= menudbx[i]) && (mouse_x <= (menudbx[i] + menudbw[i]))){
+            if((mouse_y >= menudby[i]) && (mouse_y <= (menudby[i] + menudbh[i]))){
+                return i;
+            }
+        }
+    }
+    return null;
+}
+
+function deleteactive(mdbactive){//if a module was already active, delete that entry
+    mdbname.splice(mdbactive,1);
+    mdbx.splice(mdbactive,1);
+    mdby.splice(mdbactive,1);
+    mdbrot.splice(mdbactive,1);
+    return;
+}
+
+//redraw canvas
+function refreshdisplay(){
+    const context = canvas.getContext('2d');
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.fillStyle = "rgba(200, 200, 200, 1)";
+    context.fillRect(0, 0, 840, 360);
+    context.fillStyle = "rgba(180, 180, 230, 1)";
+    context.fillRect(692, 186, 114, 30);
+    context.fillRect(692, 136, 114, 30);
+    context.fillStyle = "rgba(100, 255, 255, 1)";
+    context.fillRect(692, 236, 114, 30);
+    context.fillStyle = "rgba(255, 255, 0, 1)";
+    context.fillRect(692, 286, 114, 30);
+    context.fillStyle = "rgba(0, 0, 0, 1)";
+    context.fillRect(0, 0, 360, 330);
+    context.fillRect(530, 103, 150, 225);
+    context.fillStyle = "rgba(200, 200, 200, 1)";
+    context.fillRect(532, 105, 146, 221);
+    context.fillStyle = "rgba(0, 0, 0, 1)";
+    context.fillRect(365, 103, 160, 225);
+    context.font ="18px bolder sans-serif";
+    context.fillText('Module Info',535,125,210);
+    //redraw menu
+    for (i=0; i < menudbname.length; i++){    
+    drawmodulefree(menudbname[i],menudbx[i],menudby[i],0,
+        menudbw[i], menudbh[i]);
+    }
+    //redraw build area modules
+    for (i=0; i < mdbx.length; i++){ 
+    drawmodule(mdbname[i],mdbx[i],mdby[i],mdbrot[i],
+        menudbw[menudbname.indexOf(mdbname[i])]*2,
+        menudbh[menudbname.indexOf(mdbname[i])]*2);
+    }
+    //draw active module at mouse position
+    context.globalAlpha = 0.5;
+    if (activemodule !== null){
+        drawmodulemouse(activemodule,mouse_x,mouse_y,currentrot,width,height)
+    }
+    context.globalAlpha = 1;
+
+    context.font ="13px sans-serif";
+    //write menu mouseover info in info window
+    context.fillText('Import Station',700,156,100);
+    context.fillText('Export Station',700,206,100);
+    context.fillText('Colour Coding',700,256,100);
+    context.fillText('INSTRUCTIONS',700,306,100);
+
+    mdbname.forEach(sumcapex);
+    mdbname.forEach(sumopex);
+    mdbname.forEach(sumcrew);
+    mdbname.forEach(sumggym);
+    mdbname.forEach(sumcharge);
+    mdbname.forEach(sumpower);
+    mdbname.forEach(summass);
+
+    context.fillStyle = "rgba(255, 255, 255, 1)";
+    context.font ="18px bolder sans-serif";
+    context.fillText('Station Info',370,125,210);
+    context.font ="13px sans-serif";
+    context.fillText('Total Capex: '+netcapex,370,155,210);
+    context.fillText('Total Opex: '+(Math.floor(netopex*10)/10),370,170,210);
+    context.fillText('Total Base Charge: '+netcharge,370,185,210);
+    if (netpower < 0){context.fillStyle = "rgba(255, 0, 0, 1)";}
+    context.fillText('Net Power: '+netpower,370,200,210);
+    context.fillStyle = "rgba(255, 255, 255, 1)";
+    if (netcrew < 0){context.fillStyle = "rgba(255, 0, 0, 1)";}
+    context.fillText('Net Crew: '+netcrew,370,215,210);
+    context.fillStyle = "rgba(255, 255, 255, 1)";
+    if (netggym < 0){context.fillStyle = "rgba(255, 0, 0, 1)";}
+    context.fillText('Net Galley & Gym: '+netggym,370,230,210);
+    context.fillStyle = "rgba(255, 255, 255, 1)";
+    context.fillText('Net Mass: '+netmass,370,245,210);
+    context.fillStyle = "rgba(0, 0, 0, 1)";
+    netcapex = 0;
+    netopex = 0;
+    netcharge = 0;
+    netpower = 0;
+    netcrew = 0;
+    netggym = 0;
+    netmass = 0;
+    context.fillText('Capex: ',535,155,210);
+    context.fillText('Opex: ',535,170,210);
+    context.fillText('Base Charge: ',535,185,210);
+    context.fillText('Power: ',535,200,210);
+    context.fillText('Crew: ',535,215,210);
+    context.fillText('Galley & Gym: ',535,230,210);
+    context.fillText('Mass: ',535,245,210);
+
+    var menuindex = findbutton(mouse_x, mouse_y);
+    if (Number.isInteger(menuindex)||(Number.isInteger(spotcheck(mouse_x,mouse_y)))){
+        if(Number.isInteger(spotcheck(mouse_x,mouse_y))){
+            menuindex = menudbname.indexOf(mdbname[spotcheck(mouse_x,mouse_y)]);
+        }
+        context.fillText(menutxt1[menuindex],535,140,135);
+        context.fillText(menutxt2[menuindex],535,263,135);
+        context.fillText(menutxt3[menuindex],535,281,135);
+        context.fillText(menutxt4[menuindex],535,299,140);
+        context.fillText(menutxt5[menuindex],535,317,140);
+        context.fillText('Capex: '+capex[menuindex],535,155,210);
+        context.fillText('Opex: '+opex[menuindex],535,170,210);
+        context.fillText('Base Charge: '+basecharge[menuindex],535,185,210);
+        context.fillText('Power: '+power[menuindex],535,200,210);
+        context.fillText('Crew: '+crew[menuindex],535,215,210);
+        context.fillText('Galley & Gym: '+galleygym[menuindex],535,230,210);
+        context.fillText('Mass: '+mass[menuindex],535,245,210);
+    }
+    menuindex = null;
+//instruction menu
+    if (instructions == 1){
+    context.fillStyle = "rgba(255, 255, 255, 1)";
+    context.fillRect(197,7,406,316);
+    context.fillStyle = "rgba(240, 240, 240, 1)";
+    context.fillRect(200,10,400,310);
+    context.fillStyle = "rgba(0, 0, 0, 1)";
+    context.font ="18px bolder sans-serif";
+    context.fillText('Welcome to the Earth Orbit Stations Designer!',210,30,380);
+    context.font ="13px sans-serif";
+    context.fillText('-This program is meant to simplify station design.',210,50,380);
+    context.fillText('-To get started, click anywhere to dismiss the instructions.',210,68,380);
+    context.fillText('-Please remember that additional stations cost 250 extra Capex.',210,86,380);
+    context.fillText('-To start building, click any module in the grey menu area. -->',210,104,380);
+    context.fillText('-Then, move your mouse over to the black build area. <--',210,122,380);
+    context.fillText('-Click to place the module! Click a placed module to move it.',210,140,380);
+    context.fillText('-Station statistics do not include the unplaced module.',210,158,380);
+    context.fillText('-To import a station, click \"Import Station\", paste your station',210,176,380);
+    context.fillText('code into the box appearing over the button, then press enter.',210,193,380);
+    context.fillText('-Press X or Delete to delete the unplaced module.',210,211,380);
+    context.fillText('-Press V to duplicate the last-placed module.',210,229,380);
+    context.fillText('-Use arrow keys to rotate modules in place.',210,247,380);
+    context.fillText('-There is currently no connection or collision check! It is up to you.',210,265,380);
+    context.fillText('-BLUE modules provide resources. GREEN modules produce research',210,283,380);
+    context.fillText('and have no requirements. YELLOW modules produce research but',210,300,380);
+    context.fillText('have research requirements to build. RED modules produce nothing.',210,316,380);
+    }
+}
+
+function sumcapex(item){netcapex += capex[menudbname.indexOf(item)]}
+function sumopex(item){netopex += opex[menudbname.indexOf(item)]}
+function sumcrew(item){netcrew += crew[menudbname.indexOf(item)]}
+function sumggym(item){netggym += galleygym[menudbname.indexOf(item)]}
+function sumcharge(item){netcharge += basecharge[menudbname.indexOf(item)]}
+function sumpower(item){netpower += power[menudbname.indexOf(item)]}
+function summass(item){netmass += mass[menudbname.indexOf(item)]}
+
+function drawmodulefree(activemodule,mouse_x,mouse_y,currentrot,width,height){
+    var test = canvas.getContext('2d');
+    var rotoffsetx = 0
+    var rotoffsety = 0
+    switch (currentrot % 4){ //offset when rotating to always have click at top left of module
+        case -2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            break;
+        case 2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            break;
+        case -1:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            break;
+        case 1:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            break;
+        case 3:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            break;
+        case -3:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            break;
+        case 0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            break;
+        case -0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            break;
+        }
+    test.translate(mouse_x + rotoffsetx, mouse_y + rotoffsety); //snap to grid
+    test.rotate(currentrot % 4 * Math.PI / 2);
+    if (colourcode == 1){ //colour coding - have to make background black first as grey makes it wonky
+        test.fillStyle = "rgba(0, 0, 0, 1)";
+        test.fillRect(0, 0, width, height);
+        test.globalCompositeOperation = 'lighter';
+        test.fillStyle = menudbcolour[menudbname.indexOf(activemodule)];
+        test.fillRect(0, 0, width, height);
+        test.globalCompositeOperation = 'source-over';
+        test.fillStyle = "rgba(0, 0, 0, 1)";
+    }
+    test.drawImage(activemodule,0,0,width,height);
+//        console.log("Drawing at " + mouse_x + "," + mouse_y + ", rotation:" + currentrot);
+//colorcoding
+    test.rotate(-currentrot % 4 * Math.PI / 2);
+    test.translate(-(mouse_x + rotoffsetx), -(mouse_y + rotoffsety));
+    rotoffsetx = 0;
+    rotoffsety = 0;
+}
+
+function drawmodule(activemodule,mouse_x,mouse_y,currentrot,width,height){
+    var test = canvas.getContext('2d');
+    var rotoffsetx = 0
+    var rotoffsety = 0
+    switch (currentrot % 4){ //offset when rotating to always have click at top left of module
+        case -2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            break;
+        case 2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            break;
+        case -1:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            break;
+        case 1:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            break;
+        case 3:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            break;
+        case -3:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            break;
+        case 0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            break;
+        case -0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            break;
+        }
+    test.translate(mouse_x - mouse_x % 30 + rotoffsetx, mouse_y - mouse_y % 30 + rotoffsety); //snap to grid
+    test.rotate(currentrot % 4 * Math.PI / 2);
+
+//colour coding
+    if (colourcode == 1){
+        test.globalCompositeOperation = 'lighter';
+        test.fillStyle = menudbcolour[menudbname.indexOf(activemodule)];
+        test.fillRect(0, 0, width, height);
+        test.globalCompositeOperation = 'source-over';
+        test.fillStyle = "rgba(0, 0, 0, 1)";
+    }
+
+    test.drawImage(activemodule,0,0,width,height);
+//        console.log("Drawing solcol at " + mouse_x + "," + mouse_y + ", rotation:" + currentrot);
+    test.rotate(-currentrot % 4 * Math.PI / 2);
+    test.translate(-(mouse_x - mouse_x % 30 + rotoffsetx), -(mouse_y - mouse_y % 30 + rotoffsety));
+    rotoffsetx = 0;
+    rotoffsety = 0;
+}
+
+//this offsets the activemodule that follows the mouse to make it snap in a more intuitive way
+function drawmodulemouse(activemodule,mouse_x,mouse_y,currentrot,width,height){
+    var test = canvas.getContext('2d');
+    var rotoffsetx = 0;
+    var rotoffsety = 0;
+    var x = 0;
+    var y = 0;
+    switch (currentrot % 4){ //offset when rotating to always have click at top left of module
+        case -2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            x = -1;
+            y = -1;
+            break;
+        case 2:
+            rotoffsetx = width;
+            rotoffsety = height;
+            x = -1;
+            y = -1;
+            break;
+        case -1:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            x = -1;
+            y = 1;
+            break;
+        case 1:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            x = 1;
+            y = -1;
+            break;
+        case 3:
+            rotoffsetx = 0;
+            rotoffsety = width;
+            x = -1;
+            y = 1;
+            break;
+        case -3:
+            rotoffsetx = height;
+            rotoffsety = 0;
+            x = 1;
+            y = -1;
+            break;
+        case 0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            x = 1;
+            y = 1;
+            break;
+        case -0:
+            rotoffsetx = 0;
+            rotoffsety = 0;
+            x = 1;
+            y = 1;
+            break;
+        }
+    test.translate(mouse_x + rotoffsetx, mouse_y + rotoffsety); //snap to grid
+    test.rotate(currentrot % 4 * Math.PI / 2);
+    test.drawImage(activemodule,-15 * x,-15 * y,width,height);
+//        console.log("Drawing at " + mouse_x + "," + mouse_y + ", rotation:" + currentrot);
+    test.rotate(-currentrot % 4 * Math.PI / 2);
+    test.translate(-(mouse_x + rotoffsetx), -(mouse_y + rotoffsety));
+    rotoffsetx = 0;
+    rotoffsety = 0;
+}
+
+//find out what module was clicked on in the build area
+function spotcheck(mouse_x,mouse_y,shuttleport){
+    if (!Number.isInteger(shuttleport)){shuttleport = 0;}
+    for (i = 0; i < mdbx.length; i++){
+        var n = menudbname.indexOf(mdbname[i]);
+        var x_base = 0;
+        var y_base = 0;
+        var x_extent = 0;
+        var y_extent = 0;
+        switch (mdbrot[i]%4){ //determine x extent (right) and y extent (down) including rotation
+            case -2:
+                x_extent = menudbw[n]*2;
+                y_extent = menudbh[n]*2;
+                y_base = 30 * shuttleport;
+                break;
+            case 2:
+                x_extent = menudbw[n]*2;
+                y_extent = menudbh[n]*2;
+                y_base = 30 * shuttleport;
+                break;
+            case -1:
+                x_extent = menudbh[n]*2 - shuttleport*30;
+                y_extent = menudbw[n]*2;
+                break;
+            case 1:
+                x_extent = menudbh[n]*2;
+                y_extent = menudbw[n]*2;
+                x_base = 30 * shuttleport;
+                break;
+            case 3:
+                x_extent = menudbh[n]*2 - shuttleport*30;
+                y_extent = menudbw[n]*2;
+                break;
+            case -3:
+                x_extent = menudbh[n]*2;
+                y_extent = menudbw[n]*2;
+                x_base = 30 * shuttleport;
+                break;
+            case 0:
+                x_extent = menudbw[n]*2;
+                y_extent = menudbh[n]*2 - shuttleport*30;
+                break;
+            case -0:
+                x_extent = menudbw[n]*2;
+                y_extent = menudbh[n]*2 - shuttleport*30;
+                break;
+        }
+        if(mouse_x >= (mdbx[i] - mdbx[i] % 30 + x_base)){
+            //now check if mouse_x is within x extent of module
+            if(mouse_x < (mdbx[i] - mdbx[i] % 30 + x_extent)){
+            //now check if mouse_y is within y extent of module
+                if((mouse_y >= (mdby[i] - mdby[i] % 30 + y_base)) && (mouse_y < (mdby[i] - mdby[i] % 30 + y_extent))){
+                return i;                
+                }
+            }
+        }
+    }
+    return null;
+}
+
+var txtname = '';
+function findindices(item){
+    var foo = menudbname.indexOf(item);
+    txtname += foo.toString();
+    txtname += ',';
+}
+
+//if click on export - spit out module db in popup box?
+function exportlayout(){
+    mdbname.forEach(findindices);
+    var txtx = mdbx.toString();
+    var txty = mdby.toString();
+    var txtrot = mdbrot.toString();
+    alert(txtname + ';' + txtx + ';' + txty + ';' + txtrot);
+    txtname = '';
+}
+
+//if click on import - import module db
+    //press enter to import - build keycode into onkeypress function
+    //replace mdb with this
+
+var importraw = '';
+function importlayout(){
+    //pop up text box
+    import_underway = 1;
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.style.position = 'fixed';
+    input.style.left = '692px';
+    input.style.top = '136px';
+    input.style.width = '114px';
+    document.body.appendChild(input);
+    input.focus();
+    input.addEventListener('keydown',handleimport,true);
+    //take input, split it, pop into each mdb
+}
+
+function handleimport(){
+    if ((event.keyCode == 13) && (import_underway == 1)){ //enter key for importing
+        var txtbox = document.getElementsByTagName("input");
+        importraw = txtbox[0].value;
+        var importblocks = importraw.split(";");
+        if (importblocks.length == 4){ //should catch most malformatted imports, I'm not doing any sanitization past this point, please don't paste random code in
+            var importname = importblocks[0].split(",");
+            if (importname.length > 1){importname.pop();} //as the export process introduces an extra empty element at the end
+            mdbname = importname.map(getnameobj);
+            mdbx = importblocks[1].split(",");
+            mdby = importblocks[2].split(",");
+            mdbrot = importblocks[3].split(",");
+        }
+        txtbox[0].remove();
+        import_underway = 0;
+    }
+}
+
+function getnameobj(currentValue){return menudbname[currentValue];}
+refreshdisplay();
+//check module collisions, out-of-bounds and invalid exits via db
+//if station okay, update capex, opex, ggym, crew, power, mass, base charge counts
+
+    </script>
+</body>
+</html>      
